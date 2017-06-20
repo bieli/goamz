@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AdRoll/goamz/aws"
+	"github.com/bieli/goamz/aws"
 )
 
 const debug = false
@@ -1005,6 +1005,7 @@ func (req *request) url() (*url.URL, error) {
 	}
 	u.RawQuery = req.params.Encode()
 	u.Path = req.path
+	//fmt.Printf("url() - u: %v\n", u)
 	return u, nil
 }
 
@@ -1089,6 +1090,7 @@ func (s3 *S3) setBaseURL(req *request) error {
 // not the escaped hex representation '%3F'.
 func partiallyEscapedPath(path string) string {
 	pathEscapedAndSplit := strings.Split((&url.URL{Path: path}).String(), "/")
+	//fmt.Printf("\npathEscapedAndSplit: %v\n", pathEscapedAndSplit)
 	if len(pathEscapedAndSplit) >= 3 {
 		if len(pathEscapedAndSplit[2]) >= 3 {
 			// Check for the one "?" that should not be escaped.
@@ -1135,7 +1137,7 @@ func (s3 *S3) prepare(req *request) error {
 	} else if s3.Auth.Token() != "" {
 		req.params.Set("X-Amz-Security-Token", s3.Auth.Token())
 	}
-
+	//fmt.Printf("\nprepare() - req.params: %v\n", req.params)
 	if s3.Signature == aws.V2Signature {
 		// Always sign again as it's not clear how far the
 		// server has handled a previous attempt.
@@ -1143,14 +1145,16 @@ func (s3 *S3) prepare(req *request) error {
 		if err != nil {
 			return err
 		}
-
+		//fmt.Printf("\nprepare() - u: %v\n", u)
 		signpathPartiallyEscaped := partiallyEscapedPath(req.path)
+		//fmt.Printf("\nsignpathPartiallyEscaped: %v\n\n", signpathPartiallyEscaped)
 		if strings.IndexAny(s3.Region.S3BucketEndpoint, "${bucket}") >= 0 {
 			signpathPartiallyEscaped = "/" + req.bucket + signpathPartiallyEscaped
 		}
+		//fmt.Printf("\nsignpathPartiallyEscaped2: %v\n\n", signpathPartiallyEscaped)
 		req.headers["Host"] = []string{u.Host}
 		req.headers["Date"] = []string{time.Now().In(time.UTC).Format(time.RFC1123)}
-
+		//fmt.Printf("\nreq: %v\n", req)
 		sign(s3.Auth, req.method, signpathPartiallyEscaped, req.params, req.headers)
 	} else {
 		hreq, err := s3.setupHttpRequest(req)
@@ -1168,6 +1172,7 @@ func (s3 *S3) prepare(req *request) error {
 			req.headers["Content-Length"] = headers["Content-Length"]
 		}
 	}
+
 	return nil
 }
 
@@ -1186,6 +1191,7 @@ func (s3 *S3) setupHttpRequest(req *request) (*http.Request, error) {
 	}
 	if s3.Region.Name != "generic" {
 		u.Opaque = fmt.Sprintf("//%s%s", u.Host, partiallyEscapedPath(u.Path))
+		//fmt.Printf("\nu.Opaque: %s\n", u.Opaque)
 	}
 
 	hreq := http.Request{
@@ -1205,7 +1211,10 @@ func (s3 *S3) setupHttpRequest(req *request) (*http.Request, error) {
 	if req.payload != nil {
 		hreq.Body = ioutil.NopCloser(req.payload)
 	}
-
+	//fmt.Printf("setupHttpRequest() - req.headers: %v\n", req.headers)
+	//fmt.Printf("setupHttpRequest() - hreq.URL.Path: %v\n", hreq.URL.Path)
+	//hreq.URL.Path = strings.Replace(hreq.URL.Path, "%3F", "?", 1)
+	//fmt.Printf("setupHttpRequest() - hreq.URL: %v\n", hreq.URL)
 	return &hreq, nil
 }
 

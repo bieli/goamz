@@ -1,10 +1,10 @@
 package s3_test
 
 import (
-	"github.com/AdRoll/goamz/aws"
-	"github.com/AdRoll/goamz/s3"
-	"github.com/AdRoll/goamz/s3/s3test"
-	"github.com/AdRoll/goamz/testutil"
+	"github.com/bieli/goamz/aws"
+	"github.com/bieli/goamz/s3"
+	"github.com/bieli/goamz/s3/s3test"
+	"github.com/bieli/goamz/testutil"
 	"gopkg.in/check.v1"
 	"io/ioutil"
 	"time"
