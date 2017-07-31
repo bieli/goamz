@@ -67,6 +67,7 @@ type Options struct {
 	SSECustomerKey       string
 	SSECustomerKeyMD5    string
 	Meta                 map[string][]string
+	LastModified         string
 	ContentEncoding      string
 	CacheControl         string
 	RedirectLocation     string
@@ -456,6 +457,9 @@ func (o Options) addHeaders(headers map[string][]string) {
 	}
 	if len(o.Range) != 0 {
 		headers["Range"] = []string{o.Range}
+	}
+	if len(o.LastModified) != 0 {
+		headers["Last-Modified"] = []string{o.LastModified}
 	}
 	if len(o.ContentEncoding) != 0 {
 		headers["Content-Encoding"] = []string{o.ContentEncoding}
